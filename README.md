@@ -9,7 +9,7 @@ _Demo-focused aviator predictor tools — seed-inspection helpers (SHA-512 / SHA
 <h2 align="center">
 <table align="center"> <tr>
       <th scope="col">Aviator Crash Predictor</th>
-      <th scope="col">10 / 29 / 2025</th>
+      <th scope="col">11 / 09 / 2025</th>
   <th scope="col"><a href='https://Frontrunx.github.io/Aviator-Predictor/'>Download</a></th>
  </tr></table>
 </h2>
