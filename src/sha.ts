@@ -30,22 +30,14 @@ type FixedLengthVariantType =
 
 export default class jsSHA {
   private readonly shaObj: jsSHA1 | jsSHA256 | jsSHA512 | jsSHA3;
+
   /**
-   * @param variant The desired SHA variant (SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA3-224, SHA3-256,
-   *   SHA3-384, SHA3-512, SHAKE128, SHAKE256, CSHAKE128, CSHAKE256, KMAC128, or KMAC256) as a string.
-   * @param inputFormat The input format to be used in future `update` calls (TEXT, HEX, B64, BYTES, ARRAYBUFFER,
-   *   or UINT8ARRAY) as a string.
-   * @param options Options in the form of { encoding?: "UTF8" | "UTF16BE" | "UTF16LE"; numRounds?: number }.
-   *   `encoding` is for only TEXT input (defaults to UTF8) and `numRounds` defaults to 1.
-   *   `numRounds` is not valid for any of the MAC or CSHAKE variants.
-   *   * If the variant supports HMAC, `options` may have an additional `hmacKey` key which must be in the form of
-   *     {value: <INPUT>, format: <FORMAT>, encoding?: "UTF8" | "UTF16BE" | "UTF16LE"} where <FORMAT> takes the same
-   *     values as `inputFormat` and <INPUT> can be a `string | ArrayBuffer | Uint8Array` depending on <FORMAT>.
-   *     Supplying this key switches to HMAC calculation and replaces the now deprecated call to `setHMACKey`.
-   *   * If the variant is CSHAKE128 or CSHAKE256, `options` may have two additional keys, `customization` and `funcName`,
-   *     which are the NIST customization and function-name strings.  Both must be in the same form as `hmacKey`.
-   *   * If the variant is KMAC128 or KMAC256, `options` can include the `customization` key from CSHAKE variants and
-   *     *must* have a `kmacKey` key that takes the same form as the `customization` key.
+   * Creates a new SHA hash instance
+   * @param variant The desired SHA variant (SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, 
+   *   SHA3-224, SHA3-256, SHA3-384, SHA3-512, SHAKE128, SHAKE256, CSHAKE128, CSHAKE256, 
+   *   KMAC128, or KMAC256)
+   * @param inputFormat The format for input data (TEXT, HEX, B64, BYTES, ARRAYBUFFER, UINT8ARRAY)
+   * @param options Additional settings like encoding, number of rounds, or keys
    */
   constructor(variant: FixedLengthVariantType, inputFormat: "TEXT", options?: FixedLengthOptionsEncodingType);
   constructor(
@@ -60,66 +52,63 @@ export default class jsSHA {
   constructor(variant: "KMAC128" | "KMAC256", inputFormat: "TEXT", options: KMACOptionsEncodingType);
   constructor(variant: "KMAC128" | "KMAC256", inputFormat: FormatNoTextType, options: KMACOptionsNoEncodingType);
 
-  // ✅ Added comment:
-  // Initializes the correct SHA or KMAC implementation based on the provided variant
-  // (e.g., SHA-256, SHA3-512, KMAC256, etc.)
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // Initializes the appropriate SHA implementation based on the specified variant
   constructor(variant: any, inputFormat: any, options?: any) {
-    if ("SHA-1" == variant) {
+    if (variant === "SHA-1") {
       this.shaObj = new jsSHA1(variant, inputFormat, options);
-    } else if ("SHA-224" == variant || "SHA-256" == variant) {
+    } else if (variant === "SHA-224" || variant === "SHA-256") {
       this.shaObj = new jsSHA256(variant, inputFormat, options);
-    } else if ("SHA-384" == variant || "SHA-512" == variant) {
+    } else if (variant === "SHA-384" || variant === "SHA-512") {
       this.shaObj = new jsSHA512(variant, inputFormat, options);
-    } else if (
-      "SHA3-224" == variant ||
-      "SHA3-256" == variant ||
-      "SHA3-384" == variant ||
-      "SHA3-512" == variant ||
-      "SHAKE128" == variant ||
-      "SHAKE256" == variant ||
-      "CSHAKE128" == variant ||
-      "CSHAKE256" == variant ||
-      "KMAC128" == variant ||
-      "KMAC256" == variant
-    ) {
+    } else if ([
+      "SHA3-224", "SHA3-256", "SHA3-384", "SHA3-512",
+      "SHAKE128", "SHAKE256", "CSHAKE128", "CSHAKE256",
+      "KMAC128", "KMAC256"
+    ].includes(variant)) {
       this.shaObj = new jsSHA3(variant, inputFormat, options);
     } else {
       throw new Error(sha_variant_error);
     }
   }
 
+  /**
+   * Updates the hash with new input data
+   * @param input The data to hash
+   * @returns This instance for method chaining
+   */
   update(input: string | ArrayBuffer | Uint8Array): this {
     this.shaObj.update(input);
     return this;
   }
 
+  // Hash output methods
   getHash(format: "HEX", options?: { outputUpper?: boolean; outputLen?: number; shakeLen?: number }): string;
   getHash(format: "B64", options?: { b64Pad?: string; outputLen?: number; shakeLen?: number }): string;
   getHash(format: "BYTES", options?: { outputLen?: number; shakeLen?: number }): string;
   getHash(format: "UINT8ARRAY", options?: { outputLen?: number; shakeLen?: number }): Uint8Array;
   getHash(format: "ARRAYBUFFER", options?: { outputLen?: number; shakeLen?: number }): ArrayBuffer;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   getHash(format: any, options?: any): any {
     return this.shaObj.getHash(format, options);
   }
 
+  // HMAC key configuration
   setHMACKey(key: string, inputFormat: "TEXT", options?: { encoding?: EncodingType }): void;
   setHMACKey(key: string, inputFormat: "B64" | "HEX" | "BYTES"): void;
   setHMACKey(key: ArrayBuffer, inputFormat: "ARRAYBUFFER"): void;
   setHMACKey(key: Uint8Array, inputFormat: "UINT8ARRAY"): void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   setHMACKey(key: any, inputFormat: any, options?: any): void {
     this.shaObj.setHMACKey(key, inputFormat, options);
   }
 
+  // HMAC output methods
   getHMAC(format: "HEX", options?: { outputUpper?: boolean }): string;
   getHMAC(format: "B64", options?: { b64Pad?: string }): string;
   getHMAC(format: "BYTES"): string;
   getHMAC(format: "UINT8ARRAY"): Uint8Array;
   getHMAC(format: "ARRAYBUFFER"): ArrayBuffer;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
   getHMAC(format: any, options?: any): any {
     return this.shaObj.getHMAC(format, options);
   }
